@@ -1,3 +1,6 @@
+// loads env file
+require("dotenv").config();
+
 const puppeteer = require("puppeteer-extra");
 
 const scrappers = require("./scrappers");
@@ -9,7 +12,7 @@ const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
 
 // Replace by your user ID, you can find it in the network tab in the requests
-const OUR_TINDER_USER_ID = "YOUR_USER_ID";
+const OUR_TINDER_USER_ID = process.env.OUR_TINDER_USER_ID;
 
 async function scrap(browser) {
   const [page] = await browser.pages();
@@ -49,6 +52,19 @@ async function scrap(browser) {
 
 // Auto start main logic
 (async () => {
+  const wsChromeEndpointurl = process.env.CHROME_WS_ENDPOINT;
+
+  // Check if the env var are filled up
+  if (
+    !process.env.OUR_TINDER_USER_ID ||
+    !wsChromeEndpointurl ||
+    !process.env.OPENAI_API_KEY
+  ) {
+    throw new Error(
+      "ENV variables missing. Please duplicate .env.example and fill it then start again."
+    );
+  }
+
   /**
    * Start remote debugger by running the command below
    * /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check --user-data-dir=$(mktemp -d -t 'chrome-remote_data_dir')
@@ -56,7 +72,6 @@ async function scrap(browser) {
 
   // Paste the websocket endpoint bellow
   // Connect to the chrome with the websocket endpoint
-  const wsChromeEndpointurl = "YOUR_WEBSOCKET_ENDPOINT";
   const browser = await puppeteer.connect({
     browserWSEndpoint: wsChromeEndpointurl,
     slowMo: 100
